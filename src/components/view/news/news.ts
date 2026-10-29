@@ -1,38 +1,42 @@
 import './news.css';
+import { Article } from '../../../types';
+import { getElement } from '../../../utils/dom';
 
 class News {
-    draw(data) {
-        const news = data.length >= 10 ? data.filter((_item, idx) => idx < 10) : data;
+  public draw(data: Article[]): void {
+    const news = data.slice(0, 10);
+    const fragment = document.createDocumentFragment();
+    const newsItemTemp = getElement<HTMLTemplateElement>('#newsItemTemp');
 
-        const fragment = document.createDocumentFragment();
-        const newsItemTemp = document.querySelector('#newsItemTemp');
+    news.forEach((item, idx) => {
+      const newsClone = newsItemTemp.content.cloneNode(true) as DocumentFragment;
 
-        news.forEach((item, idx) => {
-            const newsClone = newsItemTemp.content.cloneNode(true);
+      if (idx % 2) {
+        getElement('.news__item', newsClone).classList.add('alt');
+      }
 
-            if (idx % 2) newsClone.querySelector('.news__item').classList.add('alt');
+      getElement('.news__meta-photo', newsClone).style.backgroundImage = `url(${
+        item.urlToImage || 'img/news_placeholder.jpg'
+      })`;
+      getElement('.news__meta-author', newsClone).textContent = item.author || item.source.name;
+      getElement('.news__meta-date', newsClone).textContent = item.publishedAt
+        .slice(0, 10)
+        .split('-')
+        .reverse()
+        .join('-');
 
-            newsClone.querySelector('.news__meta-photo').style.backgroundImage = `url(${
-                item.urlToImage || 'img/news_placeholder.jpg'
-            })`;
-            newsClone.querySelector('.news__meta-author').textContent = item.author || item.source.name;
-            newsClone.querySelector('.news__meta-date').textContent = item.publishedAt
-                .slice(0, 10)
-                .split('-')
-                .reverse()
-                .join('-');
+      getElement('.news__description-title', newsClone).textContent = item.title;
+      getElement('.news__description-source', newsClone).textContent = item.source.name;
+      getElement('.news__description-content', newsClone).textContent = item.description;
+      getElement('.news__read-more a', newsClone).setAttribute('href', item.url);
 
-            newsClone.querySelector('.news__description-title').textContent = item.title;
-            newsClone.querySelector('.news__description-source').textContent = item.source.name;
-            newsClone.querySelector('.news__description-content').textContent = item.description;
-            newsClone.querySelector('.news__read-more a').setAttribute('href', item.url);
+      fragment.append(newsClone);
+    });
 
-            fragment.append(newsClone);
-        });
-
-        document.querySelector('.news').innerHTML = '';
-        document.querySelector('.news').appendChild(fragment);
-    }
+    const container = getElement('.news');
+    container.innerHTML = '';
+    container.appendChild(fragment);
+  }
 }
 
 export default News;
